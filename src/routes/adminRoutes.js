@@ -1,7 +1,6 @@
 const express = require('express');
 const { MongoClient } = require('mongodb');
-const chalk = require('chalk');
-const debug = require('debug')('app');
+const debug = require('debug')('app:adminRoutes');
 
 const adminRouter = express.Router();
 const books = [
@@ -9,12 +8,14 @@ const books = [
     title: 'War and Peace',
     genre: 'Historical Fiction',
     author: 'Lev Nikolayevich Tolstoy',
+    bookId: 656,
     read: false
   },
   {
     title: 'Les Misérables',
     genre: 'Historical Fiction',
     author: 'Victor Hugo',
+    bookId: 24280,
     read: false
   },
   {
@@ -53,6 +54,7 @@ const books = [
     author: 'Lev Nikolayevich Tolstoy',
     read: false
   }];
+
 function router(nav) {
   adminRouter.route('/')
     .get((req, res) => {
@@ -63,13 +65,16 @@ function router(nav) {
         let client;
         try {
           client = await MongoClient.connect(url);
+          debug('Connected correctly to server');
+
           const db = client.db(dbName);
-          const responseFromDB = await db.collection('books').insertMany(books);
-          res.json(responseFromDB);
-        } catch (error) {
-          debug(error.stack);
-          console.log(chalk.red('Error connecting OR inserting data in to mongo'));
+
+          const response = await db.collection('books').insertMany(books);
+          res.json(response);
+        } catch (err) {
+          debug(err.stack);
         }
+
         client.close();
       }());
     });
